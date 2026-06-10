@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="id" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lembar Jawaban Siswa (LJPSAJ)</title>
+    <!-- Favicon Keren & Profesional (Blue Shield/Checkmark) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='112' fill='%232563eb'/><path d='M368 192L224 336l-80-80' fill='none' stroke='white' stroke-width='44' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#10b981',
+                        darkbg: '#111827',
+                        darkcard: '#1f2937'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .custom-radio:checked + div { background-color: #3b82f6; color: white; border-color: #3b82f6; }
+        .dark .custom-radio:checked + div { background-color: #3b82f6; color: white; border-color: #3b82f6; }
+        .custom-checkbox:checked + div { background-color: #10b981; color: white; border-color: #10b981; }
+        
+        .loader {
+            border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%;
+            width: 40px; height: 40px; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-darkbg dark:text-gray-200 antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-white dark:bg-darkcard shadow-md sticky top-0 z-40 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="app.switchView('home')">
+                    <div class="bg-primary text-white p-2 rounded-lg"><i class="fa-solid fa-graduation-cap text-xl"></i></div>
+                    <span class="font-bold text-xl tracking-tight text-gray-900 dark:text-white hidden sm:block">LJPSAJ Online</span>
+                    <span class="font-bold text-xl tracking-tight text-gray-900 dark:text-white sm:hidden">LJPSAJ</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button id="themeToggle" class="text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary transition-colors text-xl">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <button id="navAdminBtn" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors text-sm">
+                        <i class="fa-solid fa-shield-halved mr-1"></i> Admin
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-5xl">
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="fixed inset-0 bg-white/80 dark:bg-darkbg/80 z-50 flex flex-col justify-center items-center hidden backdrop-blur-sm">
+            <div class="loader mb-4"></div>
+            <p class="text-lg font-medium text-gray-700 dark:text-gray-300 mt-2">Memproses Data...</p>
+        </div>
+
+        <!-- VIEW: Home (Student Identity) -->
+        <div id="viewHome" class="fade-in max-w-md mx-auto bg-white dark:bg-darkcard rounded-2xl shadow-xl overflow-hidden mt-10 border border-gray-100 dark:border-gray-800">
+            <div class="bg-gradient-to-r from-primary to-blue-600 p-6 text-center text-white">
+                <h2 class="text-2xl font-bold mb-2">Selamat Datang</h2>
+                <p class="text-blue-100 text-sm">Silahkan isi identitas untuk memulai ujian</p>
+            </div>
+            <div class="p-6 space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pilih Kelas</label>
+                    <select id="selectClass" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-primary focus:border-primary block p-3 transition-colors">
+                        <option value="">-- Pilih Kelas --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pilih Nama Siswa</label>
+                    <select id="selectName" disabled class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-primary focus:border-primary block p-3 opacity-50 cursor-not-allowed transition-colors">
+                        <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
+                    </select>
+                </div>
+                <button id="btnStartTest" disabled class="w-full text-white bg-primary hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-lg px-5 py-3 text-center transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md">
+                    Mulai Ujian <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW: The Test -->
+        <div id="viewTest" class="hidden fade-in space-y-6">
+            <div class="bg-white dark:bg-darkcard rounded-xl shadow-md p-4 flex justify-between items-center border-l-4 border-primary">
+                <div>
+                    <h3 class="font-bold text-lg text-gray-800 dark:text-white">Identitas Siswa</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Nama: <span id="displayStudentName" class="font-semibold"></span> | Kelas: <span id="displayStudentClass" class="font-semibold"></span></p>
+                </div>
+            </div>
+
+            <form id="examForm" class="space-y-8">
+                <!-- Part A -->
+                <div class="bg-white dark:bg-darkcard rounded-xl shadow-md overflow-hidden">
+                    <div class="bg-gray-100 dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700">
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Bagian A: Pilihan Ganda</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Pilih satu jawaban yang paling tepat.</p>
+                    </div>
+                    <div id="containerPartA" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                </div>
+
+                <!-- Part B -->
+                <div class="bg-white dark:bg-darkcard rounded-xl shadow-md overflow-hidden">
+                    <div class="bg-gray-100 dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700">
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Bagian B: Pilihan Ganda Kompleks</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Pilih semua jawaban yang benar (bisa lebih dari satu).</p>
+                    </div>
+                    <div id="containerPartB" class="p-6 grid grid-cols-1 gap-6"></div>
+                </div>
+
+                <!-- Part C -->
+                <div class="bg-white dark:bg-darkcard rounded-xl shadow-md overflow-hidden">
+                    <div class="bg-gray-100 dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700">
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Bagian C: Menjodohkan</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Pilih pasangan jawaban yang tepat dari menu.</p>
+                    </div>
+                    <div id="containerPartC" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                </div>
+
+                <!-- Part D -->
+                <div class="bg-white dark:bg-darkcard rounded-xl shadow-md overflow-hidden">
+                    <div class="bg-gray-100 dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700">
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Bagian D: Isian Terbuka</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Pilih jawaban yang paling tepat dari menu.</p>
+                    </div>
+                    <div id="containerPartD" class="p-6 space-y-6"></div>
+                </div>
+
+                <div class="flex justify-end pt-4 pb-10">
+                    <button type="submit" class="bg-secondary hover:bg-emerald-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-transform transform hover:scale-105 text-lg">
+                        <i class="fa-solid fa-paper-plane mr-2"></i> Kirim Jawaban
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- VIEW: Admin Login -->
+        <div id="viewAdminLogin" class="hidden fade-in max-w-sm mx-auto bg-white dark:bg-darkcard rounded-2xl shadow-xl overflow-hidden mt-10">
+             <div class="bg-gray-800 p-6 text-center text-white">
+                <i class="fa-solid fa-lock text-3xl mb-2"></i>
+                <h2 class="text-2xl font-bold">Admin Panel</h2>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Username</label>
+                    <input type="text" id="adminUser" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-3 dark:text-white focus:ring-2 focus:ring-gray-800" placeholder="admin">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="adminPass" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-3 dark:text-white focus:ring-2 focus:ring-gray-800" placeholder="••••••••">
+                </div>
+                <button id="btnAdminLogin" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-medium rounded-lg px-5 py-3 transition-colors">Login</button>
+                <button onclick="app.switchView('home')" class="w-full text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 text-sm mt-2">Batal</button>
+            </div>
+        </div>
+
+        <!-- VIEW: Admin Dashboard -->
+        <div id="viewAdminDashboard" class="hidden fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white"><i class="fa-solid fa-gauge mr-2"></i> Dashboard Admin</h1>
+                <button onclick="app.logoutAdmin()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout Admin
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="border-b border-gray-200 dark:border-gray-700 mb-6 flex overflow-x-auto">
+                <button onclick="app.switchAdminTab('students')" id="tab-students" class="admin-tab whitespace-nowrap py-3 px-5 border-b-2 font-medium text-sm text-primary border-primary transition-colors">
+                    <i class="fa-solid fa-users mr-1"></i> Data Siswa
+                </button>
+                <button onclick="app.switchAdminTab('keys')" id="tab-keys" class="admin-tab whitespace-nowrap py-3 px-5 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 transition-colors">
+                    <i class="fa-solid fa-cogs mr-1"></i> Pembuat Ujian & Kunci
+                </button>
+                <button onclick="app.switchAdminTab('results')" id="tab-results" class="admin-tab whitespace-nowrap py-3 px-5 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 transition-colors">
+                    <i class="fa-solid fa-chart-bar mr-1"></i> Hasil Ujian
+                </button>
+            </div>
+
+            <!-- Tab Content: Students -->
+            <div id="content-students" class="admin-content space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Import Box -->
+                    <div class="bg-white dark:bg-darkcard p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 lg:col-span-1">
+                        <h3 class="font-bold mb-2">Import Data Siswa</h3>
+                        <p class="text-xs text-gray-500 mb-3">Format per baris: <code>Nama Kelas - Nama Lengkap</code><br>Contoh: <code>10A - Budi Santoso</code></p>
+                        <textarea id="importStudentData" rows="6" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-2 text-sm dark:text-white focus:ring-1 focus:ring-primary mb-3" placeholder="Paste data disini..."></textarea>
+                        <button onclick="app.importStudents()" class="w-full bg-primary hover:bg-blue-600 text-white py-2 rounded-lg text-sm font-medium transition-colors">
+                            <i class="fa-solid fa-file-import mr-1"></i> Import Data
+                        </button>
+                    </div>
+                    <!-- Table Box -->
+                    <div class="bg-white dark:bg-darkcard p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 lg:col-span-2 overflow-hidden flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold">Daftar Siswa (<span id="countStudents">0</span>)</h3>
+                            <button onclick="app.deleteSelectedStudents()" class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded transition-colors">
+                                <i class="fa-solid fa-trash-can"></i> Hapus Terpilih
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto flex-grow max-h-[400px] overflow-y-auto">
+                            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 relative">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300 sticky top-0 z-10 shadow-sm">
+                                    <tr>
+                                        <th scope="col" class="px-4 py-3 text-center w-10">
+                                            <input type="checkbox" id="selectAllStudents" onclick="app.toggleSelectAllStudents(event)" class="accent-primary w-4 h-4 cursor-pointer">
+                                        </th>
+                                        <th scope="col" class="px-4 py-3 text-center w-12">No</th>
+                                        <th scope="col" class="px-4 py-3">Kelas</th>
+                                        <th scope="col" class="px-4 py-3">Nama</th>
+                                        <th scope="col" class="px-4 py-3 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableStudentsBody">
+                                    <!-- Injected via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Keys/Builder -->
+            <div id="content-keys" class="admin-content hidden space-y-6">
+                <div class="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 p-4 text-sm text-yellow-800 dark:text-yellow-200 rounded-r-lg shadow-sm">
+                    <p class="font-bold"><i class="fa-solid fa-cogs mr-1"></i> Mode Pembuat Ujian Dinamis:</p>
+                    <ul class="list-disc ml-5 mt-1 space-y-1">
+                        <li>Anda dapat **menambah** atau **menghapus** soal pada setiap bagian.</li>
+                        <li>Pilih tab kelas di bawah untuk mengatur struktur ujian yang berbeda untuk tiap angkatan (Kelas 7, 8, 9).</li>
+                        <li>Pada **Bagian C dan D**, Opsi Jawaban yang Anda ketik otomatis menjadi menu *dropdown* di Kunci Jawaban Admin maupun Lembar Jawaban Siswa.</li>
+                    </ul>
+                </div>
+
+                <!-- Sub Menu Kelas -->
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-[72px] z-30 bg-white/90 dark:bg-darkbg/90 backdrop-blur-md p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <div class="flex space-x-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+                        <button onclick="app.setAdminGrade('7')" id="btn-grade-7" class="admin-grade-tab px-5 py-2 bg-primary text-white shadow-md rounded-lg font-bold text-sm transition-colors whitespace-nowrap">Kelas 7</button>
+                        <button onclick="app.setAdminGrade('8')" id="btn-grade-8" class="admin-grade-tab px-5 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-bold text-sm transition-colors whitespace-nowrap">Kelas 8</button>
+                        <button onclick="app.setAdminGrade('9')" id="btn-grade-9" class="admin-grade-tab px-5 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-bold text-sm transition-colors whitespace-nowrap">Kelas 9</button>
+                    </div>
+                    <button onclick="app.saveExamConfig()" class="bg-secondary hover:bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg transition-colors border border-emerald-700 flex items-center justify-center gap-2 w-full sm:w-auto">
+                        <i class="fa-solid fa-save text-lg"></i> Simpan Semua Kunci
+                    </button>
+                </div>
+                
+                <div id="adminKeyFormContainer" class="space-y-8 pb-10 mt-4">
+                    <!-- Builder UI Injected via JS -->
+                </div>
+            </div>
+
+            <!-- Tab Content: Results -->
+            <div id="content-results" class="admin-content hidden space-y-6">
+                <div class="bg-white dark:bg-darkcard p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+                        <h3 class="font-bold">Hasil Ujian Siswa</h3>
+                        <div class="flex gap-2 w-full md:w-auto">
+                            <select id="filterClass" class="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-sm rounded-lg p-2 focus:ring-primary focus:border-primary w-full md:w-32">
+                                <option value="all">Semua Kelas</option>
+                            </select>
+                            <input type="text" id="searchName" placeholder="Cari nama..." class="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-sm rounded-lg p-2 focus:ring-primary w-full md:w-48">
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3 text-center">No</th>
+                                    <th scope="col" class="px-4 py-3">Waktu</th>
+                                    <th scope="col" class="px-4 py-3">Kelas</th>
+                                    <th scope="col" class="px-4 py-3">Nama</th>
+                                    <th scope="col" class="px-4 py-3 text-center">Part A</th>
+                                    <th scope="col" class="px-4 py-3 text-center">Part B</th>
+                                    <th scope="col" class="px-4 py-3 text-center">Part C</th>
+                                    <th scope="col" class="px-4 py-3 text-center">Part D</th>
+                                    <th scope="col" class="px-4 py-3 text-center font-bold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-600 rounded-t-lg">Total Skor</th>
+                                    <th scope="col" class="px-4 py-3 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableResultsBody">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 flex justify-between items-center">
+                         <span class="text-sm text-gray-500 dark:text-gray-400">Status: <span id="countSubmissions" class="font-bold text-green-600">0</span> Selesai | <span id="countUnsubmitted" class="font-bold text-red-500">0</span> Belum</span>
+                         <button onclick="app.deleteAllResults()" class="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400">Hapus Semua Hasil</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Custom Modal -->
+    <div id="customModal" class="fixed inset-0 bg-black/50 z-[100] hidden flex justify-center items-center backdrop-blur-sm transition-opacity opacity-0">
+        <div class="bg-white dark:bg-darkcard rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4 transform scale-95 transition-transform" id="modalContent">
+            <div class="flex items-center gap-3 mb-4" id="modalHeader">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white" id="modalTitle">Title</h3>
+            </div>
+            <p class="text-gray-600 dark:text-gray-300 mb-6" id="modalMessage">Message</p>
+            <div id="modalInputs" class="space-y-3 mb-6 hidden"></div>
+            <div class="flex justify-end gap-3" id="modalActions"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Setup -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, updateDoc, getDoc, onSnapshot, query, addDoc, deleteDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Konfigurasi Firebase dari pengguna
+        const firebaseConfig = {
+            apiKey: "AIzaSyDtUjhGxma8w8rXu9bNcagTyUNohd-WV3M",
+            authDomain: "aplikasi-website-787b2.firebaseapp.com",
+            projectId: "aplikasi-website-787b2",
+            storageBucket: "aplikasi-website-787b2.firebasestorage.app",
+            messagingSenderId: "409321652477",
+            appId: "1:409321652477:web:f617e2d2c7ee304b30be94",
+            measurementId: "G-RZE0F0QJ84"
+        };
+        const firebaseApp = initializeApp(firebaseConfig);
+        const auth = getAuth(firebaseApp);
+        const db = getFirestore(firebaseApp);
+        const appId = 'aplikasi-ljs';
+
+        // Konfigurasi Bawaan (Akan digunakan jika tidak ada data di database)
+        const BASE_EXAM_CONFIG = {
+            partA: [
+                { id: "1", opts: "A, B, C, D", answer: "A" }, { id: "2", opts: "A, B, C, D", answer: "A" },
+                { id: "3", opts: "A, B, C, D", answer: "A" }, { id: "4", opts: "A, B, C, D", answer: "A" },
+                { id: "5", opts: "A, B, C, D", answer: "A" }, { id: "6", opts: "A, B, C, D", answer: "A" }
+            ],
+            partB: [
+                { id: "7", opts: "A, B, C, D, E", answers: "A, B" }, { id: "8", opts: "A, B, C, D, E", answers: "A, C" },
+                { id: "9", opts: "A, B, C, D, E", answers: "A, D" }, { id: "10", opts: "A, B, C, D, E", answers: "A, E" },
+                { id: "11", opts: "A, B, C, D, E", answers: "B, C" }, { id: "12", opts: "A, B, C, D, E", answers: "B, D" },
+                { id: "13", opts: "A, B, C, D, E", answers: "B, E" }, { id: "14", opts: "A, B, C, D, E", answers: "C, D" },
+                { id: "15", opts: "A, B, C, D, E", answers: "C, E" }, { id: "16", opts: "A, B, C, D, E", answers: "D, E" },
+                { id: "17", opts: "A, B, C, D, E", answers: "A, B, C" }, { id: "18", opts: "A, B, C, D, E", answers: "A" }
+            ],
+            partC: [
+                { id: "19", subCount: 5, opts: "A, B, C, D, E", labels: {"1":"Sub 1", "2":"Sub 2", "3":"Sub 3", "4":"Sub 4", "5":"Sub 5"}, answers: {"1":"A", "2":"B", "3":"C", "4":"D", "5":"E"} },
+                { id: "20", subCount: 4, opts: "A, B, C, D", labels: {"1":"Sub 1", "2":"Sub 2", "3":"Sub 3", "4":"Sub 4"}, answers: {"1":"A", "2":"B", "3":"C", "4":"D"} },
+                { id: "21", subCount: 5, opts: "A, B, C, D, E", labels: {"1":"Sub 1", "2":"Sub 2", "3":"Sub 3", "4":"Sub 4", "5":"Sub 5"}, answers: {"1":"A", "2":"B", "3":"C", "4":"D", "5":"E"} },
+                { id: "22", subCount: 5, opts: "A, B, C, D, E", labels: {"1":"Sub 1", "2":"Sub 2", "3":"Sub 3", "4":"Sub 4", "5":"Sub 5"}, answers: {"1":"A", "2":"B", "3":"C", "4":"D", "5":"E"} },
+                { id: "23", subCount: 5, opts: "A, B, C, D, E", labels: {"1":"Sub 1", "2":"Sub 2", "3":"Sub 3", "4":"Sub 4", "5":"Sub 5"}, answers: {"1":"A", "2":"B", "3":"C", "4":"D", "5":"E"} },
+                { id: "24", subCount: 4, opts: "A, B, C, D", labels: {"1":"Sub 1", "2":"Sub 2", "3":"Sub 3", "4":"Sub 4"}, answers: {"1":"A", "2":"B", "3":"C", "4":"D"} }
+            ],
+            partD: [
+                { id: "25", subCount: 5, opts: "were, stayed, had, was, left", labels: {"1":"Sub 1", "2":"Sub 2", "3":"Sub 3", "4":"Sub 4", "5":"Sub 5"}, answers: {"1":"were", "2":"stayed", "3":"had", "4":"was", "5":"left"} },
+                { id: "26", subCount: 5, opts: "is wanted, wanted, was, were, worked, was working, stay, stayed, would be, would", labels: {"1":"Sub 1", "2":"Sub 2", "3":"Sub 3", "4":"Sub 4", "5":"Sub 5"}, answers: {"1":"is wanted", "2":"was", "3":"worked", "4":"stayed", "5":"would"} },
+                { id: "27", subCount: 5, opts: "absorb, need, converts, are, get", labels: {"1":"Sub 1", "2":"Sub 2", "3":"Sub 3", "4":"Sub 4", "5":"Sub 5"}, answers: {"1":"absorb", "2":"need", "3":"converts", "4":"are", "5":"get"} }
+            ]
+        };
+
+        const DEFAULT_CONFIGS = {
+            '7': JSON.parse(JSON.stringify(BASE_EXAM_CONFIG)),
+            '8': JSON.parse(JSON.stringify(BASE_EXAM_CONFIG)),
+            '9': JSON.parse(JSON.stringify(BASE_EXAM_CONFIG))
+        };
+
+        // --- Application State ---
+        window.app = {
+            user: null, students: [], submissions: [],
+            examConfigs: JSON.parse(JSON.stringify(DEFAULT_CONFIGS)), 
+            currentAdminGrade: '7',
+            isAdmin: false, currentStudent: null,
+            unsubscribeStudents: null, unsubscribeSubmissions: null,
+
+            // Elements
+            els: {
+                loading: document.getElementById('loadingOverlay'),
+                views: { home: document.getElementById('viewHome'), test: document.getElementById('viewTest'), adminLogin: document.getElementById('viewAdminLogin'), adminDashboard: document.getElementById('viewAdminDashboard') },
+                selectClass: document.getElementById('selectClass'), selectName: document.getElementById('selectName'),
+                btnStart: document.getElementById('btnStartTest'), examForm: document.getElementById('examForm')
+            },
+
+            // --- Utilities ---
+            setLoading: (show) => { show ? app.els.loading.classList.remove('hidden') : setTimeout(() => app.els.loading.classList.add('hidden'), 300); },
+
+            showModal: (title, message, type = 'info', onConfirm = null, customInputs = null) => {
+                const modal = document.getElementById('customModal');
+                const content = document.getElementById('modalContent');
+                const titleEl = document.getElementById('modalTitle');
+                const msgEl = document.getElementById('modalMessage');
+                const header = document.getElementById('modalHeader');
+                const actions = document.getElementById('modalActions');
+                const inputsContainer = document.getElementById('modalInputs');
+
+                titleEl.textContent = title;
+                msgEl.innerHTML = message;
+                
+                let icon = '';
+                if(type === 'error') { icon = '<i class="fa-solid fa-circle-exclamation text-red-500 text-2xl"></i>'; titleEl.className = "text-lg font-bold text-red-600"; }
+                else if(type === 'success') { icon = '<i class="fa-solid fa-circle-check text-green-500 text-2xl"></i>'; titleEl.className = "text-lg font-bold text-green-600"; }
+                else if(type === 'confirm') { icon = '<i class="fa-solid fa-circle-question text-blue-500 text-2xl"></i>'; titleEl.className = "text-lg font-bold text-blue-600"; }
+                else if(type === 'danger') { icon = '<i class="fa-solid fa-triangle-exclamation text-red-500 text-2xl"></i>'; titleEl.className = "text-lg font-bold text-red-600"; }
+                else { icon = '<i class="fa-solid fa-info-circle text-gray-500 text-2xl"></i>'; titleEl.className = "text-lg font-bold text-gray-800 dark:text-white"; }
+                
+                const existingIcon = header.querySelector('i');
+                if(existingIcon) existingIcon.remove();
+                header.insertAdjacentHTML('afterbegin', icon);
+
+                // Handle custom inputs
+                inputsContainer.innerHTML = '';
+                if (customInputs) {
+                    inputsContainer.classList.remove('hidden');
+                    customInputs.forEach(input => {
+                        inputsContainer.insertAdjacentHTML('beforeend', `
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">${input.label}</label>
+                                <input type="text" id="${input.id}" value="${input.value || ''}" class="w-full bg-gray-50 border border-gray-300 rounded p-2 text-sm text-gray-900 focus:ring-primary focus:border-primary">
+                            </div>
+                        `);
+                    });
+                } else {
+                    inputsContainer.classList.add('hidden');
+                }
+
+                actions.innerHTML = '';
+                if(type === 'confirm' || type === 'danger') {
+                    const btnCancel = document.createElement('button');
+                    btnCancel.className = "px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm font-medium";
+                    btnCancel.textContent = "Tidak";
+                    btnCancel.onclick = () => app.closeModal();
+                    
+                    const btnOk = document.createElement('button');
+                    btnOk.className = `px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium ${type === 'danger' ? 'bg-red-600 hover:bg-red-700' : 'bg-primary hover:bg-blue-600'}`;
+                    btnOk.textContent = "Ya";
+                    btnOk.onclick = () => { 
+                        if (customInputs) {
+                            const data = {};
+                            customInputs.forEach(input => data[input.id] = document.getElementById(input.id).value);
+                            onConfirm && onConfirm(data); 
+                        } else {
+                            onConfirm && onConfirm(); 
+                        }
+                        app.closeModal(); 
+                    };
+                    actions.appendChild(btnCancel);
+                    actions.appendChild(btnOk);
+                } else {
+                    const btnOk = document.createElement('button');
+                    btnOk.className = "px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm font-medium";
+                    btnOk.textContent = "Tutup";
+                    btnOk.onclick = () => { onConfirm && onConfirm(); app.closeModal(); };
+                    actions.appendChild(btnOk);
+                }
+
+                modal.classList.remove('hidden');
+                setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+            },
+
+            closeModal: () => {
+                const modal = document.getElementById('customModal');
+                const content = document.getElementById('modalContent');
+                modal.classList.add('opacity-0'); content.classList.add('scale-95');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            },
+
+            switchView: (viewName) => {
+                Object.values(app.els.views).forEach(v => v.classList.add('hidden'));
+                if(app.els.views[viewName]) app.els.views[viewName].classList.remove('hidden');
+            },
+
+            getGradeFromClass: (className) => {
+                const lower = className.toLowerCase();
+                if (lower.includes('9') || lower.includes('ix')) return '9';
+                if (lower.includes('8') || lower.includes('viii')) return '8';
+                if (lower.includes('7') || lower.includes('vii')) return '7'; 
+                return '7'; // Default ke 7 jika gagal dideteksi
+            },
+
+            setAdminGrade: (grade) => {
+                // Simpan state saat ini sebelum pindah tab
+                app.examConfigs[app.currentAdminGrade] = app.readCurrentBuilderState();
+                
+                app.currentAdminGrade = grade;
+                app.renderExamBuilder();
+                
+                document.querySelectorAll('.admin-grade-tab').forEach(btn => {
+                    btn.classList.remove('bg-primary', 'text-white', 'shadow-md');
+                    btn.classList.add('bg-gray-200', 'text-gray-700', 'dark:bg-gray-700', 'dark:text-gray-300');
+                });
+                
+                const activeBtn = document.getElementById(`btn-grade-${grade}`);
+                if(activeBtn) {
+                    activeBtn.classList.remove('bg-gray-200', 'text-gray-700', 'dark:bg-gray-700', 'dark:text-gray-300');
+                    activeBtn.classList.add('bg-primary', 'text-white', 'shadow-md');
+                }
+            },
+
+            // --- Initialization ---
+            init: async () => {
+                app.setLoading(true);
+                const btnTheme = document.getElementById('themeToggle');
+                const html = document.documentElement;
+                
+                if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    html.classList.add('dark'); btnTheme.innerHTML = '<i class="fa-solid fa-sun"></i>';
+                }
+
+                btnTheme.addEventListener('click', () => {
+                    html.classList.toggle('dark');
+                    if (html.classList.contains('dark')) { localStorage.setItem('theme', 'dark'); btnTheme.innerHTML = '<i class="fa-solid fa-sun"></i>'; } 
+                    else { localStorage.setItem('theme', 'light'); btnTheme.innerHTML = '<i class="fa-solid fa-moon"></i>'; }
+                });
+
+                document.getElementById('navAdminBtn').addEventListener('click', () => app.isAdmin ? app.switchView('adminDashboard') : app.switchView('adminLogin'));
+                document.getElementById('btnAdminLogin').addEventListener('click', app.handleAdminLogin);
+                document.getElementById('adminPass').addEventListener('keypress', (e) => { if(e.key === 'Enter') app.handleAdminLogin(); });
+
+                app.els.selectClass.addEventListener('change', (e) => {
+                    const selectedClass = e.target.value;
+                    const selectName = app.els.selectName;
+                    selectName.innerHTML = '<option value="">-- Pilih Nama Siswa --</option>';
+                    if(selectedClass) {
+                        const studentsInClass = app.students.filter(s => s.class === selectedClass).sort((a,b) => a.name.localeCompare(b.name));
+                        studentsInClass.forEach(s => { selectName.insertAdjacentHTML('beforeend', `<option value="${s.id}">${s.name}</option>`); });
+                        selectName.disabled = false; selectName.classList.remove('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        selectName.disabled = true; selectName.classList.add('opacity-50', 'cursor-not-allowed');
+                        app.els.btnStart.disabled = true;
+                    }
+                });
+
+                app.els.selectName.addEventListener('change', (e) => app.els.btnStart.disabled = !e.target.value);
+                app.els.btnStart.addEventListener('click', app.startTest);
+                app.els.examForm.addEventListener('submit', app.submitTest);
+
+                const initAuth = async () => {
+                    try { await signInAnonymously(auth); } 
+                    catch (error) { console.error("Auth init error:", error); app.showModal('Error Autentikasi', 'Gagal masuk ke Firebase.', 'error'); }
+                };
+
+                await initAuth();
+
+                onAuthStateChanged(auth, async (user) => {
+                    app.user = user;
+                    if(user) await app.fetchInitialData();
+                    app.setLoading(false);
+                });
+            },
+
+            fetchInitialData: async () => {
+                if (!auth.currentUser) return;
+
+                // Load Exam Configs (Multi-grade support)
+                try {
+                    const configRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'exam_configs_v4');
+                    const configSnap = await getDoc(configRef);
+                    if (configSnap.exists()) {
+                        app.examConfigs = configSnap.data().configs;
+                    } else {
+                        await setDoc(configRef, { id: 'exam_configs_v4', configs: app.examConfigs });
+                    }
+                    if(app.isAdmin) app.renderExamBuilder();
+                } catch (e) {
+                    console.warn("Gagal memuat Config dari server. Menggunakan bawaan.", e);
+                }
+                
+                // Load Students
+                try {
+                    const studentsRef = collection(db, 'artifacts', appId, 'public', 'data', 'students');
+                    app.unsubscribeStudents = onSnapshot(studentsRef, (snapshot) => {
+                        app.students = []; let classes = new Set();
+                        snapshot.forEach(doc => { const data = doc.data(); app.students.push({ id: doc.id, ...data }); classes.add(data.class); });
+                        app.updateClassDropdown(Array.from(classes).sort());
+                        if(app.isAdmin) app.renderAdminStudents();
+                    });
+                } catch (e) { console.error("Gagal listen data siswa:", e); }
+            },
+
+            updateClassDropdown: (classes) => {
+                const currentVal = app.els.selectClass.value;
+                app.els.selectClass.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+                classes.forEach(c => app.els.selectClass.insertAdjacentHTML('beforeend', `<option value="${c}">${c}</option>`));
+                if(classes.includes(currentVal)) { app.els.selectClass.value = currentVal; app.els.selectClass.dispatchEvent(new Event('change')); }
+                
+                const filterClass = document.getElementById('filterClass');
+                if(filterClass) {
+                    const currentFilter = filterClass.value;
+                    filterClass.innerHTML = '<option value="all">Semua Kelas</option>';
+                    classes.forEach(c => filterClass.insertAdjacentHTML('beforeend', `<option value="${c}">${c}</option>`));
+                    filterClass.value = currentFilter || 'all';
+                }
+            },
+
+            // --- Dynamic Exam Generator (For Students) ---
+            generateExamUI: (grade) => {
+                const conf = app.examConfigs[grade];
+                if (!conf) return;
+
+                // Part A
+                let htmlA = '';
+                conf.partA.forEach(q => {
+                    htmlA += `<div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <p class="font-semibold mb-3 text-gray-800 dark:text-gray-200">Soal ${q.id}.</p>
+                        <div class="flex flex-wrap gap-3">`;
+                    const options = (q.opts || "").split(',').map(s => s.trim()).filter(s => s !== "");
+                    options.forEach(opt => {
+                        htmlA += `
+                            <label class="cursor-pointer relative flex-1 min-w-[60px]">
+                                <input type="radio" name="ans_A_${q.id}" value="${opt}" class="custom-radio sr-only" required>
+                                <div class="w-full text-center py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 font-medium transition-colors text-gray-700 dark:text-gray-300">
+                                    ${opt}
+                                </div>
+                            </label>`;
+                    });
+                    htmlA += `</div></div>`;
+                });
+                document.getElementById('containerPartA').innerHTML = htmlA;
+
+                // Part B
+                let htmlB = '';
+                conf.partB.forEach(q => {
+                    htmlB += `<div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <p class="font-semibold mb-3 text-gray-800 dark:text-gray-200">Soal ${q.id}.</p>
+                        <div class="flex flex-wrap gap-3">`;
+                    const options = (q.opts || "").split(',').map(s => s.trim()).filter(s => s !== "");
+                    options.forEach(opt => {
+                        htmlB += `
+                            <label class="cursor-pointer relative flex-1 min-w-[60px]">
+                                <input type="checkbox" name="ans_B_${q.id}" value="${opt}" class="custom-checkbox sr-only">
+                                <div class="w-full text-center py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 font-medium transition-colors text-gray-700 dark:text-gray-300">
+                                    ${opt}
+                                </div>
+                            </label>`;
+                    });
+                    htmlB += `</div></div>`;
+                });
+                document.getElementById('containerPartB').innerHTML = htmlB;
+
+                // Part C
+                let htmlC = '';
+                conf.partC.forEach(q => {
+                    htmlC += `<div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <p class="font-semibold mb-3 text-gray-800 dark:text-gray-200">Soal ${q.id}.</p>
+                        <div class="space-y-3">`;
+                    const options = (q.opts || "").split(',').map(s => s.trim()).filter(s => s !== "");
+                    for(let j = 1; j <= q.subCount; j++) {
+                        const subLabel = (q.labels && q.labels[j]) ? q.labels[j] : `Sub ${j}`;
+                        htmlC += `<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                            <span class="w-full sm:w-1/3 text-sm font-medium text-gray-700 dark:text-gray-300 break-words">${subLabel}</span>
+                            <select name="ans_C_${q.id}_${j}" class="flex-grow w-full sm:w-2/3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-sm rounded-lg p-2 focus:ring-primary focus:border-primary dark:text-white" required>
+                                <option value="">- Pilih Pasangan -</option>`;
+                        options.forEach(opt => {
+                            if(opt) htmlC += `<option value="${opt}">${opt}</option>`;
+                        });
+                        htmlC += `</select></div>`;
+                    }
+                    htmlC += `</div></div>`;
+                });
+                document.getElementById('containerPartC').innerHTML = htmlC;
+
+                // Part D
+                let htmlD = '';
+                conf.partD.forEach(q => {
+                    htmlD += `<div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-col md:flex-row gap-4">
+                        <div class="font-semibold text-gray-800 dark:text-gray-200 w-16">Soal ${q.id}.</div>
+                        <div class="flex-grow grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">`;
+                    const options = (q.opts || "").split(',').map(s => s.trim()).filter(s => s !== "");
+                    for(let j = 1; j <= q.subCount; j++) {
+                        const subLabel = (q.labels && q.labels[j]) ? q.labels[j] : `Sub ${j}`;
+                        htmlD += `<div>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 break-words">${subLabel}</label>
+                            <select name="ans_D_${q.id}_${j}" class="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-sm rounded-lg p-2 focus:ring-primary focus:border-primary dark:text-white" required>
+                                <option value="">- Pilih -</option>`;
+                        options.forEach(opt => {
+                            if(opt) htmlD += `<option value="${opt}">${opt}</option>`;
+                        });
+                        htmlD += `</select></div>`;
+                    }
+                    htmlD += `</div></div>`;
+                });
+                document.getElementById('containerPartD').innerHTML = htmlD;
+            },
+
+            // --- Execution & Scoring ---
+            startTest: () => {
+                if (!auth.currentUser) return;
+                const classVal = app.els.selectClass.value;
+                const studentId = app.els.selectName.value;
+                const studentName = app.els.selectName.options[app.els.selectName.selectedIndex].text;
+
+                if(!classVal || !studentId) return;
+
+                const grade = app.getGradeFromClass(classVal);
+                app.currentStudent = { id: studentId, class: classVal, name: studentName, grade: grade };
+                document.getElementById('displayStudentName').textContent = studentName;
+                document.getElementById('displayStudentClass').textContent = classVal;
+                
+                // Men-generate form ujian berdasarkan kelas siswa (7, 8, atau 9)
+                app.generateExamUI(grade);
+
+                app.setLoading(true);
+                getDocs(query(collection(db, 'artifacts', appId, 'public', 'data', 'answers'))).then(snap => {
+                    let hasSubmitted = false;
+                    snap.forEach(d => { if(d.id === studentId) hasSubmitted = true; });
+                    app.setLoading(false);
+                    
+                    if(hasSubmitted) {
+                        app.showModal('Sudah Ujian', 'Anda telah menyelesaikan ujian ini dan jawaban sudah terekam.', 'error');
+                    } else {
+                        app.els.examForm.reset();
+                        window.scrollTo(0,0);
+                        app.switchView('test');
+                    }
+                }).catch(e => { app.setLoading(false); app.showModal('Error', 'Gagal memverifikasi status ujian.', 'error'); });
+            },
+
+            submitTest: (e) => {
+                e.preventDefault();
+                app.showModal('Konfirmasi', 'Apakah Anda yakin ingin mengirim jawaban?', 'confirm', app.processSubmission);
+            },
+
+            processSubmission: async () => {
+                if (!auth.currentUser) return;
+                app.setLoading(true);
+                const formData = new FormData(app.els.examForm);
+                const userAns = { partA: {}, partB: {}, partC: {}, partD: {} };
+                const scores = { total: 0, partA: 0, partB: 0, partC: 0, partD: 0 };
+                
+                // Gunakan config dari kelas siswa yang sedang ujian
+                const conf = app.examConfigs[app.currentStudent.grade];
+
+                for(let [name, value] of formData.entries()) {
+                    const parts = name.split('_');
+                    if(parts[1] === 'A') userAns.partA[parts[2]] = value;
+                    else if(parts[1] === 'B') { if(!userAns.partB[parts[2]]) userAns.partB[parts[2]] = []; userAns.partB[parts[2]].push(value); }
+                    else if(parts[1] === 'C') { if(!userAns.partC[parts[2]]) userAns.partC[parts[2]] = {}; userAns.partC[parts[2]][parts[3]] = value; }
+                    else if(parts[1] === 'D') { if(!userAns.partD[parts[2]]) userAns.partD[parts[2]] = {}; userAns.partD[parts[2]][parts[3]] = value; }
+                }
+
+                try {
+                    // Score Part A
+                    conf.partA.forEach(q => { if(userAns.partA[q.id] === q.answer) scores.partA += 1; });
+                    
+                    // Score Part B
+                    conf.partB.forEach(q => {
+                        const correctArr = (q.answers || "").split(',').map(s => s.trim());
+                        const userArr = userAns.partB[q.id] || [];
+                        userArr.forEach(ans => { if(correctArr.includes(ans)) scores.partB += 1; });
+                    });
+
+                    // Score Part C (Exact match from dropdown)
+                    conf.partC.forEach(q => {
+                        for(let j = 1; j <= q.subCount; j++) {
+                            if(userAns.partC[q.id] && q.answers && q.answers[j] && userAns.partC[q.id][j] === q.answers[j]) {
+                                scores.partC += 1;
+                            }
+                        }
+                    });
+
+                    // Score Part D (Exact match from dropdown)
+                    conf.partD.forEach(q => {
+                        for(let j = 1; j <= q.subCount; j++) {
+                            if(userAns.partD[q.id] && q.answers && q.answers[j] && userAns.partD[q.id][j] === q.answers[j]) {
+                                scores.partD += 1;
+                            }
+                        }
+                    });
+
+                    scores.total = scores.partA + scores.partB + scores.partC + scores.partD;
+
+                } catch(err) {
+                    console.error("Gagal menghitung:", err); app.setLoading(false);
+                    app.showModal('Error', 'Sistem gagal menghitung nilai karena kesalahan format Kunci.', 'error'); return;
+                }
+
+                const submitData = {
+                    studentId: app.currentStudent.id, studentName: app.currentStudent.name, className: app.currentStudent.class,
+                    timestamp: new Date().toISOString(), scores: scores, answers: userAns
+                };
+
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'answers', app.currentStudent.id), submitData);
+                    app.setLoading(false);
+                    app.showModal('Sukses', `Terima kasih, ujian disubmit.<br>Skor Total: ${scores.total}`, 'success', () => {
+                        app.els.selectClass.value = ''; app.els.selectName.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+                        app.els.selectName.disabled = true; app.els.btnStart.disabled = true;
+                        app.currentStudent = null; app.switchView('home');
+                    });
+                } catch (e) { app.setLoading(false); app.showModal('Gagal', 'Koneksi ke database ditolak.', 'error'); }
+            },
+
+            // --- Admin Logic ---
+            handleAdminLogin: () => {
+                const u = document.getElementById('adminUser').value; const p = document.getElementById('adminPass').value;
+                if(u === 'admin' && p === '12345') {
+                    app.isAdmin = true; document.getElementById('adminUser').value = ''; document.getElementById('adminPass').value = '';
+                    app.switchView('adminDashboard'); app.switchAdminTab('students'); app.listenToResults();
+                    app.renderAdminStudents(); app.renderExamBuilder(); // Init builders
+                } else { app.showModal('Login Gagal', 'Username atau Password salah.', 'error'); }
+            },
+
+            logoutAdmin: () => { app.isAdmin = false; if(app.unsubscribeSubmissions) app.unsubscribeSubmissions(); app.switchView('home'); },
+
+            switchAdminTab: (tabName) => {
+                if (!document.getElementById(`content-keys`).classList.contains('hidden') && tabName !== 'keys') {
+                    app.examConfigs[app.currentAdminGrade] = app.readCurrentBuilderState();
+                }
+
+                document.querySelectorAll('.admin-content').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.admin-tab').forEach(el => { el.classList.remove('text-primary', 'border-primary'); el.classList.add('text-gray-500', 'border-transparent'); });
+                document.getElementById(`content-${tabName}`).classList.remove('hidden');
+                document.getElementById(`tab-${tabName}`).classList.add('text-primary', 'border-primary');
+                document.getElementById(`tab-${tabName}`).classList.remove('text-gray-500', 'border-transparent');
+                
+                if(tabName === 'keys') {
+                    app.renderExamBuilder();
+                }
+            },
+
+            // --- Admin Data Siswa ---
+            importStudents: async () => {
+                if (!auth.currentUser) return;
+                const text = document.getElementById('importStudentData').value;
+                if(!text.trim()) return;
+                
+                const lines = text.split('\n'); let count = 0; app.setLoading(true);
+                for(let line of lines) {
+                    if(line.includes('-')) {
+                        const parts = line.split('-'); const className = parts[0].trim(); const stuName = parts[1].trim();
+                        if(className && stuName) {
+                            try { await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'students'), { class: className, name: stuName }); count++; } 
+                            catch(e) { console.error(e); }
+                        }
+                    }
+                }
+                app.setLoading(false); document.getElementById('importStudentData').value = '';
+                app.showModal('Sukses', `Berhasil mengimport ${count} data siswa.`, 'success');
+            },
+
+            renderAdminStudents: () => {
+                const tbody = document.getElementById('tableStudentsBody'); tbody.innerHTML = '';
+                document.getElementById('countStudents').textContent = app.students.length;
+                document.getElementById('selectAllStudents').checked = false; 
+                
+                const sorted = [...app.students].sort((a,b) => { if(a.class === b.class) return a.name.localeCompare(b.name); return a.class.localeCompare(b.class); });
+
+                sorted.forEach((s, index) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700";
+                    tr.innerHTML = `
+                        <td class="px-4 py-2 text-center"><input type="checkbox" class="student-checkbox accent-primary w-4 h-4 cursor-pointer" value="${s.id}"></td>
+                        <td class="px-4 py-2 text-center text-gray-500">${index + 1}</td>
+                        <td class="px-4 py-2 font-medium">${s.class}</td>
+                        <td class="px-4 py-2 text-gray-900 dark:text-white">${s.name}</td>
+                        <td class="px-4 py-2 text-right">
+                            <button onclick="app.editStudentPrompt('${s.id}', '${s.name}', '${s.class}')" class="text-blue-500 hover:text-blue-700 p-1 mr-2" title="Edit Siswa"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="app.deleteStudent('${s.id}')" class="text-red-500 hover:text-red-700 p-1" title="Hapus Siswa"><i class="fa-solid fa-trash-can"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            },
+
+            toggleSelectAllStudents: (e) => {
+                const checkboxes = document.querySelectorAll('.student-checkbox');
+                checkboxes.forEach(cb => cb.checked = e.target.checked);
+            },
+
+            deleteSelectedStudents: () => {
+                if (!auth.currentUser) return;
+                const selected = Array.from(document.querySelectorAll('.student-checkbox:checked')).map(cb => cb.value);
+                if (selected.length === 0) return app.showModal('Info', 'Belum ada siswa yang dipilih.');
+                
+                app.showModal('Hapus Massal', `Yakin ingin menghapus ${selected.length} siswa terpilih?`, 'danger', async () => {
+                    app.setLoading(true);
+                    for (let id of selected) {
+                        try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', id)); } catch(e){}
+                    }
+                    app.setLoading(false);
+                });
+            },
+
+            deleteStudent: (id) => {
+                if (!auth.currentUser) return;
+                app.showModal('Hapus Data', 'Yakin ingin menghapus siswa ini?', 'danger', async () => {
+                    app.setLoading(true);
+                    try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', id)); app.setLoading(false); } catch(e) { app.setLoading(false); }
+                });
+            },
+
+            editStudentPrompt: (id, currentName, currentClass) => {
+                app.showModal('Edit Data Siswa', 'Perbarui nama atau kelas siswa:', 'confirm', async (data) => {
+                    if(!data.editName || !data.editClass) return;
+                    app.setLoading(true);
+                    try {
+                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', id), { name: data.editName, class: data.editClass });
+                    } catch(e) {}
+                    app.setLoading(false);
+                }, [
+                    { id: 'editClass', label: 'Kelas (contoh: 10A)', value: currentClass },
+                    { id: 'editName', label: 'Nama Lengkap', value: currentName }
+                ]);
+            },
+
+            // --- Admin Exam Builder Dinamis ---
+            readCurrentBuilderState: () => {
+                const newConfig = { partA: [], partB: [], partC: [], partD: [] };
+                
+                document.querySelectorAll('.b-item-A').forEach(el => {
+                    newConfig.partA.push({ id: el.querySelector('.b-id').value, opts: el.querySelector('.b-opts').value, answer: el.querySelector('.b-ans').value });
+                });
+                document.querySelectorAll('.b-item-B').forEach(el => {
+                    newConfig.partB.push({ id: el.querySelector('.b-id').value, opts: el.querySelector('.b-opts').value, answers: el.querySelector('.b-ans').value });
+                });
+                document.querySelectorAll('.b-item-C').forEach(el => {
+                    const id = el.querySelector('.b-id').value;
+                    const subCount = parseInt(el.querySelector('.b-sub').value) || 0;
+                    const opts = el.querySelector('.b-opts').value;
+                    const answers = {};
+                    const labels = {};
+                    for(let j=1; j<=subCount; j++) { 
+                        const inEl = el.querySelector(`.b-ans-c-${j}`); 
+                        const lblEl = el.querySelector(`.b-lbl-c-${j}`);
+                        answers[j] = inEl ? inEl.value : ""; 
+                        labels[j] = lblEl ? lblEl.value : `Sub ${j}`;
+                    }
+                    newConfig.partC.push({ id, subCount, opts, labels, answers });
+                });
+                document.querySelectorAll('.b-item-D').forEach(el => {
+                    const id = el.querySelector('.b-id').value;
+                    const subCount = parseInt(el.querySelector('.b-sub').value) || 0;
+                    const opts = el.querySelector('.b-opts').value;
+                    const answers = {};
+                    const labels = {};
+                    for(let j=1; j<=subCount; j++) { 
+                        const inEl = el.querySelector(`.b-ans-d-${j}`); 
+                        const lblEl = el.querySelector(`.b-lbl-d-${j}`);
+                        answers[j] = inEl ? inEl.value : ""; 
+                        labels[j] = lblEl ? lblEl.value : `Sub ${j}`;
+                    }
+                    newConfig.partD.push({ id, subCount, opts, labels, answers });
+                });
+                return newConfig;
+            },
+
+            addQuestion: (part) => {
+                const currentConfig = app.readCurrentBuilderState();
+                const nextId = (currentConfig[part].length + 1).toString() + "-baru";
+                
+                if(part === 'partA') currentConfig.partA.push({ id: nextId, opts: "A, B, C, D", answer: "A" });
+                else if(part === 'partB') currentConfig.partB.push({ id: nextId, opts: "A, B, C, D, E", answers: "A, B" });
+                else if(part === 'partC') currentConfig.partC.push({ id: nextId, subCount: 2, opts: "Opsi 1, Opsi 2", labels: {"1":"Soal 1", "2":"Soal 2"}, answers: {"1":"", "2":""} });
+                else if(part === 'partD') currentConfig.partD.push({ id: nextId, subCount: 2, opts: "Opsi 1, Opsi 2", labels: {"1":"Sub 1", "2":"Sub 2"}, answers: {"1":"", "2":""} });
+                
+                app.examConfigs[app.currentAdminGrade] = currentConfig;
+                app.renderExamBuilder();
+            },
+
+            removeQuestion: (part, index) => {
+                const currentConfig = app.readCurrentBuilderState();
+                currentConfig[part].splice(index, 1);
+                app.examConfigs[app.currentAdminGrade] = currentConfig;
+                app.renderExamBuilder();
+            },
+
+            addSubQuestion: (part, index) => {
+                const currentConfig = app.readCurrentBuilderState();
+                currentConfig[part][index].subCount++;
+                app.examConfigs[app.currentAdminGrade] = currentConfig;
+                app.renderExamBuilder();
+            },
+
+            removeSubQuestion: (part, index) => {
+                const currentConfig = app.readCurrentBuilderState();
+                if(currentConfig[part][index].subCount > 1) {
+                    currentConfig[part][index].subCount--;
+                    app.examConfigs[app.currentAdminGrade] = currentConfig;
+                    app.renderExamBuilder();
+                }
+            },
+
+            updateAdminDropdowns: (partStr, idx, optsString) => {
+                const options = optsString.split(',').map(s => s.trim()).filter(s => s !== "");
+                const container = document.getElementById(`keys-${partStr}-${idx}`);
+                if(!container) return;
+                
+                const selects = container.querySelectorAll('select');
+                selects.forEach(sel => {
+                    const currentVal = sel.value;
+                    sel.innerHTML = '<option value="">- Pilih Kunci -</option>';
+                    options.forEach(opt => {
+                        const isSelected = opt === currentVal ? 'selected' : '';
+                        sel.insertAdjacentHTML('beforeend', `<option value="${opt}" ${isSelected}>${opt}</option>`);
+                    });
+                });
+            },
+
+            renderExamBuilder: () => {
+                const container = document.getElementById('adminKeyFormContainer');
+                const conf = app.examConfigs[app.currentAdminGrade];
+                let html = '';
+
+                const inputClass = "w-full bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 rounded p-2 text-sm text-gray-900 dark:text-white border focus:ring-primary focus:border-primary transition-colors";
+
+                // Builder Part A
+                html += `<div class="bg-white dark:bg-darkcard p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg">Bagian A (Pilihan Ganda)</h3> <button onclick="app.addQuestion('partA')" class="bg-primary hover:bg-blue-600 text-white text-xs px-3 py-1.5 rounded transition-colors"><i class="fa-solid fa-plus"></i> Tambah Soal</button></div><div class="space-y-3">`;
+                conf.partA.forEach((q, idx) => {
+                    html += `<div class="b-item-A flex gap-2 items-start bg-gray-50 dark:bg-gray-800/50 p-3 rounded border dark:border-gray-700">
+                        <div class="w-16"><label class="text-xs text-gray-500 font-medium">No Soal</label><input type="text" class="b-id ${inputClass}" value="${q.id}"></div>
+                        <div class="flex-grow"><label class="text-xs text-gray-500 font-medium">Opsi Jawaban (Pisahkan dgn koma)</label><input type="text" class="b-opts ${inputClass}" value="${q.opts}"></div>
+                        <div class="w-24"><label class="text-xs text-gray-500 font-medium">Kunci</label><input type="text" class="b-ans ${inputClass} font-bold text-primary" value="${q.answer}"></div>
+                        <div class="pt-5"><button onclick="app.removeQuestion('partA', ${idx})" class="text-red-500 p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors" title="Hapus"><i class="fa-solid fa-times"></i></button></div>
+                    </div>`;
+                });
+                html += `</div></div>`;
+
+                // Builder Part B
+                html += `<div class="bg-white dark:bg-darkcard p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg">Bagian B (Ganda Kompleks)</h3> <button onclick="app.addQuestion('partB')" class="bg-primary hover:bg-blue-600 text-white text-xs px-3 py-1.5 rounded transition-colors"><i class="fa-solid fa-plus"></i> Tambah Soal</button></div><div class="space-y-3">`;
+                conf.partB.forEach((q, idx) => {
+                    html += `<div class="b-item-B flex gap-2 items-start bg-gray-50 dark:bg-gray-800/50 p-3 rounded border dark:border-gray-700">
+                        <div class="w-16"><label class="text-xs text-gray-500 font-medium">No Soal</label><input type="text" class="b-id ${inputClass}" value="${q.id}"></div>
+                        <div class="flex-grow"><label class="text-xs text-gray-500 font-medium">Opsi Jawaban (Pisahkan dgn koma)</label><input type="text" class="b-opts ${inputClass}" value="${q.opts}"></div>
+                        <div class="w-32"><label class="text-xs text-gray-500 font-medium">Kunci (Pisah Koma)</label><input type="text" class="b-ans ${inputClass} font-bold text-secondary" value="${q.answers}" placeholder="A, C"></div>
+                        <div class="pt-5"><button onclick="app.removeQuestion('partB', ${idx})" class="text-red-500 p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors" title="Hapus"><i class="fa-solid fa-times"></i></button></div>
+                    </div>`;
+                });
+                html += `</div></div>`;
+
+                // Builder Part C
+                html += `<div class="bg-white dark:bg-darkcard p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg">Bagian C (Menjodohkan)</h3> <button onclick="app.addQuestion('partC')" class="bg-primary hover:bg-blue-600 text-white text-xs px-3 py-1.5 rounded transition-colors"><i class="fa-solid fa-plus"></i> Tambah Soal</button></div><div class="space-y-4">`;
+                conf.partC.forEach((q, idx) => {
+                    html += `<div class="b-item-C bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border dark:border-gray-700">
+                        <div class="flex flex-wrap gap-3 items-end mb-4">
+                            <div class="w-16"><label class="text-xs text-gray-500 font-medium block mb-1">No Induk</label><input type="text" class="b-id ${inputClass}" value="${q.id}"></div>
+                            <div class="w-28">
+                                <label class="text-xs text-gray-500 font-medium block mb-1">Jml Sub-Soal</label>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="app.removeSubQuestion('partC', ${idx})" class="bg-red-100 dark:bg-red-900/30 text-red-600 px-2 py-1.5 rounded hover:bg-red-200"><i class="fa-solid fa-minus"></i></button>
+                                    <input type="number" min="1" class="b-sub ${inputClass} text-center p-1 w-10 flex-grow pointer-events-none" value="${q.subCount}" readonly>
+                                    <button onclick="app.addSubQuestion('partC', ${idx})" class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 px-2 py-1.5 rounded hover:bg-blue-200"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="flex-grow"><label class="text-xs text-gray-500 font-medium block mb-1 text-primary">Tulis Opsi Jawaban (Otomatis jadi Dropdown di Kunci & Siswa)</label><input type="text" class="b-opts ${inputClass} border-primary" value="${q.opts || ''}" onkeyup="app.updateAdminDropdowns('C', ${idx}, this.value)" placeholder="Apel, Pisang, Jeruk"></div>
+                            <div class="pt-5"><button onclick="app.removeQuestion('partC', ${idx})" class="text-red-500 p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors mt-1"><i class="fa-solid fa-trash"></i></button></div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pl-4 border-l-2 border-primary mt-2" id="keys-C-${idx}">`;
+                    
+                    const cOpts = (q.opts||"").split(',').map(s=>s.trim()).filter(s => s !== "");
+                    for(let j=1; j<=q.subCount; j++) {
+                        let ansVal = (q.answers && q.answers[j]) ? q.answers[j] : "";
+                        let lblVal = (q.labels && q.labels[j]) ? q.labels[j] : `Sub ${j}`;
+                        html += `<div class="bg-white dark:bg-gray-900 p-3 rounded border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <label class="text-xs text-gray-500 font-medium mb-1 block">Teks Sub-soal ${j} (Tampil di Siswa)</label>
+                            <input type="text" class="b-lbl-c-${j} ${inputClass} mb-2 text-xs" value="${lblVal}" placeholder="Teks Soal...">
+                            <label class="text-xs text-gray-500 font-medium mb-1 block">Kunci Sub-soal ${j}</label>
+                            <select class="b-ans-c-${j} ${inputClass} font-bold text-primary cursor-pointer text-xs">
+                                <option value="">- Pilih Kunci -</option>`;
+                        cOpts.forEach(opt => {
+                            html += `<option value="${opt}" ${ansVal === opt ? 'selected' : ''}>${opt}</option>`;
+                        });
+                        html += `</select></div>`;
+                    }
+                    html += `</div></div>`;
+                });
+                html += `</div></div>`;
+
+                // Builder Part D
+                html += `<div class="bg-white dark:bg-darkcard p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg">Bagian D (Isian / Menu Pilih)</h3> <button onclick="app.addQuestion('partD')" class="bg-primary hover:bg-blue-600 text-white text-xs px-3 py-1.5 rounded transition-colors"><i class="fa-solid fa-plus"></i> Tambah Soal</button></div><div class="space-y-4">`;
+                conf.partD.forEach((q, idx) => {
+                    html += `<div class="b-item-D bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border dark:border-gray-700">
+                        <div class="flex flex-wrap gap-3 items-end mb-4">
+                            <div class="w-16"><label class="text-xs text-gray-500 font-medium block mb-1">No Induk</label><input type="text" class="b-id ${inputClass}" value="${q.id}"></div>
+                            <div class="w-28">
+                                <label class="text-xs text-gray-500 font-medium block mb-1">Jml Sub-Soal</label>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="app.removeSubQuestion('partD', ${idx})" class="bg-red-100 dark:bg-red-900/30 text-red-600 px-2 py-1.5 rounded hover:bg-red-200"><i class="fa-solid fa-minus"></i></button>
+                                    <input type="number" min="1" class="b-sub ${inputClass} text-center p-1 w-10 flex-grow pointer-events-none" value="${q.subCount}" readonly>
+                                    <button onclick="app.addSubQuestion('partD', ${idx})" class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 px-2 py-1.5 rounded hover:bg-blue-200"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="flex-grow"><label class="text-xs text-gray-500 font-medium block mb-1 text-primary">Tulis Opsi Jawaban (Otomatis jadi Dropdown di Kunci & Siswa)</label><input type="text" class="b-opts ${inputClass} border-primary" value="${q.opts || ''}" onkeyup="app.updateAdminDropdowns('D', ${idx}, this.value)" placeholder="was, were, is, are"></div>
+                            <div class="pt-5"><button onclick="app.removeQuestion('partD', ${idx})" class="text-red-500 p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors mt-1"><i class="fa-solid fa-trash"></i></button></div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pl-4 border-l-2 border-primary mt-2" id="keys-D-${idx}">`;
+                    
+                    const dOpts = (q.opts||"").split(',').map(s=>s.trim()).filter(s => s !== "");
+                    for(let j=1; j<=q.subCount; j++) {
+                        let ansVal = (q.answers && q.answers[j]) ? q.answers[j] : "";
+                        let lblVal = (q.labels && q.labels[j]) ? q.labels[j] : `Sub ${j}`;
+                        html += `<div class="bg-white dark:bg-gray-900 p-3 rounded border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <label class="text-xs text-gray-500 font-medium mb-1 block">Teks Sub-soal ${j} (Tampil di Siswa)</label>
+                            <input type="text" class="b-lbl-d-${j} ${inputClass} mb-2 text-xs" value="${lblVal}" placeholder="Label...">
+                            <label class="text-xs text-gray-500 font-medium mb-1 block">Kunci Sub-soal ${j}</label>
+                            <select class="b-ans-d-${j} ${inputClass} font-bold text-primary cursor-pointer text-xs">
+                                <option value="">- Pilih Kunci -</option>`;
+                        dOpts.forEach(opt => {
+                            html += `<option value="${opt}" ${ansVal === opt ? 'selected' : ''}>${opt}</option>`;
+                        });
+                        html += `</select></div>`;
+                    }
+                    html += `</div></div>`;
+                });
+                html += `</div></div>`;
+
+                container.innerHTML = html;
+            },
+
+            saveExamConfig: async () => {
+                if (!auth.currentUser) return;
+                app.setLoading(true);
+                
+                app.examConfigs[app.currentAdminGrade] = app.readCurrentBuilderState();
+
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'exam_configs_v4'), { id: 'exam_configs_v4', configs: app.examConfigs });
+                    app.setLoading(false);
+                    app.showModal('Berhasil', 'Struktur ujian dan kunci jawaban untuk <b>semua kelas</b> berhasil diperbarui di Cloud.', 'success');
+                } catch(e) {
+                    console.error(e); app.setLoading(false);
+                    app.showModal('Gagal Disimpan', 'Gagal menyimpan ke Cloud. Pastikan koneksi dan Firestore Rules benar.', 'error');
+                }
+            },
+
+            // --- Admin Results ---
+            listenToResults: () => {
+                if (!auth.currentUser) return;
+                if(app.unsubscribeSubmissions) return; 
+                try {
+                    app.unsubscribeSubmissions = onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', 'answers')), (snapshot) => {
+                        app.submissions = []; snapshot.forEach(doc => app.submissions.push({ id: doc.id, ...doc.data() }));
+                        app.renderResults();
+                    }, (err) => console.error("Hasil gagal dimuat:", err));
+                    document.getElementById('filterClass').addEventListener('change', app.renderResults);
+                    document.getElementById('searchName').addEventListener('input', app.renderResults);
+                } catch(err) { console.error(err); }
+            },
+
+            renderResults: () => {
+                const tbody = document.getElementById('tableResultsBody'); tbody.innerHTML = '';
+                const filterClass = document.getElementById('filterClass').value;
+                const searchName = document.getElementById('searchName').value.toLowerCase();
+
+                let submittedData = app.submissions.filter(sub => (filterClass === 'all' || sub.className === filterClass) && sub.studentName.toLowerCase().includes(searchName));
+                const submittedIds = app.submissions.map(s => s.id);
+                let unsubmittedData = app.students.filter(stu => !submittedIds.includes(stu.id) && (filterClass === 'all' || stu.class === filterClass) && stu.name.toLowerCase().includes(searchName));
+
+                submittedData.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                unsubmittedData.sort((a,b) => { if(a.class === b.class) return a.name.localeCompare(b.name); return a.class.localeCompare(b.class); });
+
+                document.getElementById('countSubmissions').textContent = submittedData.length;
+                document.getElementById('countUnsubmitted').textContent = unsubmittedData.length;
+
+                let counter = 1;
+                submittedData.forEach(sub => {
+                    const date = new Date(sub.timestamp).toLocaleString('id-ID', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
+                    tbody.insertAdjacentHTML('beforeend', `
+                        <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td class="px-4 py-2 text-center text-xs text-gray-500">${counter++}</td>
+                            <td class="px-4 py-2 text-xs">${date}</td>
+                            <td class="px-4 py-2 font-medium">${sub.className}</td>
+                            <td class="px-4 py-2 text-gray-900 dark:text-white truncate max-w-[150px]" title="${sub.studentName}">${sub.studentName}</td>
+                            <td class="px-4 py-2 text-center">${sub.scores.partA}</td>
+                            <td class="px-4 py-2 text-center">${sub.scores.partB}</td>
+                            <td class="px-4 py-2 text-center">${sub.scores.partC}</td>
+                            <td class="px-4 py-2 text-center">${sub.scores.partD}</td>
+                            <td class="px-4 py-2 text-center font-bold text-primary text-lg bg-blue-50 dark:bg-blue-900/20">${sub.scores.total}</td>
+                            <td class="px-4 py-2 text-right">
+                                <button onclick="app.deleteResult('${sub.id}')" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                            </td>
+                        </tr>`);
+                });
+
+                unsubmittedData.forEach(stu => {
+                    tbody.insertAdjacentHTML('beforeend', `
+                        <tr class="bg-red-50 dark:bg-red-900/10 border-b border-red-100 dark:border-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/20">
+                            <td class="px-4 py-2 text-center text-xs text-gray-500">${counter++}</td>
+                            <td class="px-4 py-2 text-xs text-red-400 italic">-</td>
+                            <td class="px-4 py-2 font-medium">${stu.class}</td>
+                            <td class="px-4 py-2 text-gray-900 dark:text-white truncate max-w-[150px]" title="${stu.name}">${stu.name}</td>
+                            <td class="px-4 py-2 text-center text-gray-400">-</td><td class="px-4 py-2 text-center text-gray-400">-</td>
+                            <td class="px-4 py-2 text-center text-gray-400">-</td><td class="px-4 py-2 text-center text-gray-400">-</td>
+                            <td class="px-4 py-2 text-center font-bold text-red-500 text-xs">Belum Ujian</td>
+                            <td class="px-4 py-2 text-right"></td>
+                        </tr>`);
+                });
+            },
+
+            deleteResult: (id) => {
+                if (!auth.currentUser) return;
+                app.showModal('Hapus Hasil', 'Yakin menghapus hasil ujian siswa ini?', 'danger', async () => {
+                    try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'answers', id)); } catch(e) { console.error(e); }
+                });
+            },
+
+            deleteAllResults: () => {
+                if(app.submissions.length === 0 || !auth.currentUser) return;
+                app.showModal('Peringatan Bahaya', 'Yakin menghapus <b>SEMUA</b> hasil ujian? Data yang hilang tidak dapat dikembalikan.', 'danger', async () => {
+                    app.setLoading(true);
+                    for(let sub of app.submissions) { try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'answers', sub.id)); } catch(e){} }
+                    app.setLoading(false);
+                });
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', app.init);
+
+    </script>
+</body>
+</html>
